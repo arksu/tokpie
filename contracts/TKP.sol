@@ -715,6 +715,7 @@ contract postICO is Ownable {
     function finish() onlyOwner public {
         require(now > endICODate);
         require(!finished);
+        require(token.saleAgent() == address(this));
 
         FTST = token.totalSupply().mul(100).div(65);
 
@@ -850,5 +851,55 @@ contract postICO is Ownable {
             token.transfer(walletC, paymentSizeC);
             completedBC[order] = true;
         }
+    }
+}
+
+contract Controller is Ownable {
+    Token public token;
+    preICO public pre;
+    ICO public ico;
+    postICO public post;
+
+    enum State {NONE, PRE_ICO, ICO, POST}
+
+    State public state;
+
+    function Controller(address _token, address _preICO, address _ico, address _postICO) public {
+        require(_token != address(0x0));
+        token = Token(_token);
+        pre = preICO(_preICO);
+        ico = ICO(_ico);
+        post = postICO(_postICO);
+
+        require(post.endICODate() == ico.endDate());
+
+        require(pre.weiRaised() == 0);
+        require(ico.weiRaised() == 0);
+
+        require(token.totalSupply() == 0);
+        state = State.NONE;
+    }
+
+    function startPreICO() onlyOwner public {
+        require(state == State.NONE);
+        require(token.owner() == address(this));
+        token.setSaleAgent(pre);
+        state = State.PRE_ICO;
+    }
+
+    function startICO() onlyOwner public {
+        require(now > pre.endDate());
+        require(state == State.PRE_ICO);
+        require(token.owner() == address(this));
+        token.setSaleAgent(ico);
+        state = State.ICO;
+    }
+
+    function startPostICO() onlyOwner public {
+        require(now > ico.endDate());
+        require(state == State.ICO);
+        require(token.owner() == address(this));
+        token.setSaleAgent(post);
+        state = State.POST;
     }
 }
