@@ -550,7 +550,7 @@ contract preICO is FinalizableCrowdsale, WhitelistedCrowdsale {
     }
 
     // low level token purchase function
-    function buyTokens(address beneficiary) whenNotPaused isWhitelisted(beneficiary) public payable {
+    function buyTokens(address beneficiary) whenNotPaused isWhitelisted(beneficiary) isWhitelisted(msg.sender) public payable {
         require(beneficiary != address(0));
         require(validPurchase());
         require(!hasEnded());
@@ -660,7 +660,7 @@ contract ICO is Pausable, WhitelistedCrowdsale {
     }
 
     // low level token purchase function
-    function buyTokens(address beneficiary) whenNotPaused isWhitelisted(beneficiary) public payable {
+    function buyTokens(address beneficiary) whenNotPaused isWhitelisted(beneficiary) isWhitelisted(msg.sender) public payable {
         require(beneficiary != address(0));
         require(validPurchase());
         require(!hasEnded());
